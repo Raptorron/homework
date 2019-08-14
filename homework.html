@@ -1,0 +1,116 @@
+<html>
+  <head>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/axios/0.19.0/axios.js"></script>
+  </head>
+  <body>
+    <script>
+      const loadData = async() =>{
+        const urls = ['https://acme-users-api-rev.herokuapp.com/api/companies', 'https://acme-users-api-rev.herokuapp.com/api/products', 'https://acme-users-api-rev.herokuapp.com/api/offerings'];
+
+        const responses = await Promise.all(urls.map( url=> axios.get(url)));
+        const [companies, products, offerings] = responses.map( response => response.data);
+
+ const groupCompaniesByLetter = (companies) => {
+    return companies.reduce((acc, company) =>{
+        if(!acc[company.name[0]]){
+            acc[company.name[0]]=[];
+              }
+            acc[company.name[0]].push(company);
+          return acc;
+      }, {})
+}
+
+         const groupedCompaniesByLetter = groupCompaniesByLetter(companies);
+        console.log(groupedCompaniesByLetter)
+
+
+
+
+
+
+
+
+
+const groupCompaniesByState = (companies) =>{
+  return companies.reduce((acc, company) =>{
+    if(!acc[company.state]){
+      acc[company.state]=[];
+    }
+    acc[company.state].push(company);
+    return acc;
+  }, {})
+}
+
+        const groupedCompaniesByState = groupCompaniesByState(companies);
+        console.log(groupedCompaniesByState)
+
+
+
+
+
+
+
+
+const processProducts = ({ products, offerings}) => {
+    const linked = products.map( product => {
+        return {...product, offering: offerings.filter( offering => offering.productId === product.id)}
+            });
+        return linked.map( offer => {
+            prices = offer.offering.map( prices => prices.price);
+            return prices.reduce((a, b) => a+b, 0)/prices.length;
+        })
+}
+
+const processedProducts = processProducts({ products, offerings});
+console.log(processedProducts);
+
+
+
+
+
+
+
+const companiesByNumberOfOfferings = (companies, offerings, num) =>{
+    const threeOrMore = companies.map( company => {
+        return {...company, offerings: offerings.filter(offering => offering.companyId === company.id)}
+            })
+        return threeOrMore.filter( company => company.offerings.length >= num)
+}
+
+const threeOrMoreOfferings = companiesByNumberOfOfferings(companies, offerings, 3);
+console.log(threeOrMoreOfferings);
+
+
+
+
+
+
+
+
+const processOfferings = ({ companies, products, offerings}) =>{
+    return offerings.map( offering => {
+        return {...offering, product: products.find( product => product.id === offering.productId), company: companies.find( company => company.id === offering.companyId)}
+})
+};
+
+const processedOfferings = processOfferings({ companies, products, offerings});
+console.log(processedOfferings);
+
+
+
+
+
+
+
+
+const findProductsInPriceRange = (products, obj) =>{
+    return products.filter(product => product.suggestedPrice > obj.min && product.suggestedPrice < obj.max);
+}
+
+const productsInPriceRange = findProductsInPriceRange(products, { min: 1, max: 15});
+console.log(productsInPriceRange);
+       }
+      loadData();
+    </script>
+  </body>
+</html>
